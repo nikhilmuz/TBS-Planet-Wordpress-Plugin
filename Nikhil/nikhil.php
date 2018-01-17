@@ -11,21 +11,14 @@ License URI:  https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain:  nikhil
 */
 
-//get parent category
-$nikhilparcats = get_categories();
-$nikhilparcatid='';
-foreach($nikhilparcats as $cats){
-	if($cats->name =='Test2'){$nikhilparcatid=$cats->term_id;}
-}
-
-//get child category
-$nikhilchildcats = get_categories( array('parent' => $nikhilparcatid));
+//get category
+$nikhilcats = get_categories();
 
 //add URL hook
 add_action('parse_request', 'nikhilurlhandler');
 function nikhilurlhandler() {
-	global $nikhilchildcats;
-	foreach($nikhilchildcats as $cat){
+	global $nikhilcats;
+	foreach($nikhilcats as $cat){
 		//for Newspoint
    if($_SERVER["REQUEST_URI"] == '/feed/newspoint/'.$cat->slug) {
 	  $posts=get_posts(array('numberposts'=>-1,'category'=>$cat->term_id,'orderby' => 'date','order' => 'DESC'));
