@@ -34,17 +34,25 @@ function nikhilurlhandler() {
 	   echo '"h1": "'.$cat->name.'",'.PHP_EOL;
 	   echo '"dm": "tbsplanet.com",'.PHP_EOL;
 	   echo '"tn": "photo",'.PHP_EOL;
-	   echo '"m": "'.get_option('siteurl').$cat->slug.'"'.PHP_EOL;
+	   echo '"m": "https://www.tbsplanet.com/blog/"'.PHP_EOL;
 	   echo PHP_EOL;
 	  //post details
 	  foreach($posts as $post){
+		  $image=get_children(array('post_parent' => $post->ID,
+                        'post_status' => 'inherit',
+                        'post_type' => 'attachment',
+                        'post_mime_type' => 'image',
+                        'order' => 'ASC',
+                        'orderby' => 'menu_order ID'));
+			$attachment_id='';
+			foreach ($image as $imageid=>$imageobject){$attachment_id=$imageobject->ID;}
 		  echo '"id": "'.$post->ID.'",'.PHP_EOL;
 		  echo '"h1": "'.$post->post_title.'",'.PHP_EOL;
 		  echo '"dm": "tbsplanet.com",'.PHP_EOL;
 		  echo '"cap": "';
-		  echo the_post_thumbnail_caption($post->ID).'",'.PHP_EOL;
-		  echo '"wu": "'.wp_get_attachment_image_src(get_post_thumbnail_id($post->ID),'full',false)[0].'",'.PHP_EOL;
-		  echo '"m": "'.wp_get_attachment_image_src(get_post_thumbnail_id($post->ID),'full',false)[0].'",'.PHP_EOL;
+		  echo wp_get_attachment_caption($attachment_id).'",'.PHP_EOL;
+		  echo '"wu": "'.wp_get_attachment_url($attachment_id).'",'.PHP_EOL;
+		  echo '"m": "'.wp_get_attachment_url($attachment_id).'",'.PHP_EOL;
 		  echo '"ag": "TBS Planet Comics",'.PHP_EOL;
 		  echo '"d1": "'.$post->post_date.'"'.PHP_EOL;
 		  echo PHP_EOL;
