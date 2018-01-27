@@ -18,6 +18,43 @@ $nikhilcats = get_categories();
 add_action('parse_request', 'nikhilurlhandler');
 function nikhilurlhandler() {
 	global $nikhilcats;
+	if($_SERVER["REQUEST_URI"] == '/feeds/json/newspoint/cats') {
+	  header("Content-type: application/json; charset=utf-8");
+	  $posts=get_posts(array('numberposts'=>-1,'category'=>$cat->term_id,'orderby' => 'date','order' => 'DESC'));
+	  
+	  $childcats=get_categories(array(
+'type'                     => 'post',
+'child_of'                 => get_category_by_slug( 'times' )->term_id,
+'orderby'                  => 'name',
+'order'                    => 'ASC',
+'taxonomy'                 => 'category'
+)); 
+	  //page details
+	  $pg=array(
+	  "tr" => sizeof($childcats),
+	  "pp" => sizeof($childcats),
+	  "tp" => 1,
+	  "cp"=>1
+	  );
+	  $items=array();
+	  //post details
+	  $catcount=0;
+	  $items=array();
+	  foreach($childcats as $cats){
+			$items[$catcount]=array(
+			"id" => $cats->slug,
+			"h1" => $cats->name,
+			"dm" => "tbsplanet.com",
+			"cap"=>$cats->description,
+			"ag"=>"TBS Planet Comics",
+			);
+			$catcount++;
+	  }
+	  $jsonarray=array('pg'=>$pg,'items'=>$items);
+	  echo json_encode($jsonarray);
+      exit();
+	}
+	
 	foreach($nikhilcats as $cat){
 		//for Newspoint
    if($_SERVER["REQUEST_URI"] == '/feeds/json/newspoint/'.$cat->slug) {
@@ -80,9 +117,12 @@ xmlwriter_set_indent($xw, 1);
 $res = xmlwriter_set_indent_string($xw, ' ');
 
 xmlwriter_start_document($xw, '1.0', 'UTF-8');
-xmlwriter_start_element($xw, 'posts');
+xmlwriter_start_element($xw, 'items');
 
 foreach($posts as $post){
+	
+	$posttstamp=strtotime(date('Y-m-d H:i:s').'-1 hour');
+	if ($posttstamp<strtotime($post->post_date)){
 	
 $image=get_children(array('post_parent' => $post->ID,
                         'post_status' => 'inherit',
@@ -93,47 +133,55 @@ $image=get_children(array('post_parent' => $post->ID,
 $attachment_id='';
 foreach ($image as $imageid=>$imageobject){$attachment_id=$imageobject->ID;}
 
-xmlwriter_start_element($xw, 'post');
-xmlwriter_start_Attribute($xw,'id');
+xmlwriter_start_element($xw, 'item');
+
+xmlwriter_start_Attribute($xw, 'title');
+xmlwriter_text($xw, $post->post_title);
+xmlwriter_end_Attribute($xw);
+
+xmlwriter_start_Attribute($xw,'caption');
+xmlwriter_text($xw,wp_get_attachment_caption($attachment_id));
+xmlwriter_end_Attribute($xw);
+
+xmlwriter_start_Attribute($xw,'imageID');
 xmlwriter_text($xw,$post->ID);
 xmlwriter_end_Attribute($xw);
 
+xmlwriter_start_Attribute($xw,'contentType');
+xmlwriter_text($xw,wp_get_post_tags($post->ID));
+xmlwriter_end_Attribute($xw);
 
-xmlwriter_start_element($xw, 'h1');
-xmlwriter_text($xw, $post->post_title);
-xmlwriter_end_element($xw);
+xmlwriter_start_Attribute($xw,'agency');
+xmlwriter_text($xw,'TBS Planet Comics');
+xmlwriter_end_Attribute($xw);
 
-xmlwriter_start_element($xw, 'dm');
-xmlwriter_text($xw, 'tbsplanet.com');
-xmlwriter_end_element($xw);
+xmlwriter_start_Attribute($xw,'imageURL');
+xmlwriter_text($xw,wp_get_attachment_url($attachment_id));
+xmlwriter_end_Attribute($xw);
 
-xmlwriter_start_element($xw, 'cap');
-xmlwriter_text($xw, wp_get_attachment_caption($attachment_id));
-xmlwriter_end_element($xw);
-
-xmlwriter_start_element($xw, 'wu');
-xmlwriter_text($xw, wp_get_attachment_url($attachment_id));
-xmlwriter_end_element($xw);
-
-xmlwriter_start_element($xw, 'm');
-xmlwriter_text($xw, wp_get_attachment_url($attachment_id));
-xmlwriter_end_element($xw);
-
-xmlwriter_start_element($xw, 'ag');
-xmlwriter_text($xw, 'TBS Planet Comics');
-xmlwriter_end_element($xw);
-
-xmlwriter_start_element($xw, 'd1');
-xmlwriter_text($xw, $post->post_date);
-xmlwriter_end_element($xw);
-
+xmlwriter_start_Attribute($xw,'timestamp');
+xmlwriter_text($xw,$post->post_date);
+xmlwriter_end_Attribute($xw);
 
 xmlwriter_end_element($xw);
+	}
 	  }
 	  
 	    xmlwriter_end_element($xw);
 		xmlwriter_end_document($xw);
 		echo xmlwriter_output_memory($xw);
+      exit();
+	}
+	if($_SERVER["REQUEST_URI"] == '/feeds/xml/times/log/'.$cat->slug) {
+		header("Content-type: application/json; charset=utf-8");
+	  $posts=get_posts(array('numberposts'=>-1,'category'=>$cat->term_id,'orderby' => 'date','order' => 'DESC'));
+$ids;
+$pos=0;
+foreach($posts as $post){
+$ids[$pos]=$post->ID;
+$pos++;
+	  }
+	  echo json_encode($ids);
       exit();
 	}
 	}
