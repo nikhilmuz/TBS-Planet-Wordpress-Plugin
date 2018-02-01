@@ -41,12 +41,22 @@ function nikhilurlhandler() {
 	  $catcount=0;
 	  $items=array();
 	  foreach($childcats as $cats){
+                   $posts=get_posts(array('numberposts'=>-1,'category'=>$cats->term_id,'orderby' => 'date','order' => 'ASC'));
+                   $image=get_children(array('post_parent' => $posts[0]->ID,
+                        'post_status' => 'inherit',
+                        'post_type' => 'attachment',
+                        'post_mime_type' => 'image',
+                        'order' => 'ASC',
+                        'orderby' => 'menu_order ID'));
+                    $attachment_id='';
+		    foreach ($image as $imageid=>$imageobject){$attachment_id=$imageobject->ID;}
 			$items[$catcount]=array(
 			"id" => $cats->slug,
 			"h1" => $cats->name,
 			"dm" => "tbsplanet.com",
 			"cap"=>$cats->description,
 			"ag"=>"TBS Planet Comics",
+                        "wu"=>wp_get_attachment_url($attachment_id)
 			);
 			$catcount++;
 	  }
