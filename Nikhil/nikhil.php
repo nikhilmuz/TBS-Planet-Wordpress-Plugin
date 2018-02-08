@@ -18,7 +18,7 @@ $nikhilcats = get_categories();
 add_action('parse_request', 'nikhilurlhandler');
 function nikhilurlhandler() {
 	global $nikhilcats;
-	if($_SERVER["REQUEST_URI"] == '/feeds/json/newspoint/cats') {
+	if(preg_match("/newspoint/",$_SERVER["REQUEST_URI"])&&preg_match("/cats/",$_SERVER["REQUEST_URI"])&&preg_match("/json/",$_SERVER["REQUEST_URI"])) {
 	  header("Content-type: application/json; charset=utf-8");
 	  $posts=get_posts(array('numberposts'=>-1,'category'=>$cat->term_id,'orderby' => 'date','order' => 'DESC'));
 	  
@@ -56,7 +56,8 @@ function nikhilurlhandler() {
 			"dm" => "tbsplanet.com",
 			"cap"=>$cats->description,
 			"ag"=>"TBS Planet Comics",
-                        "wu"=>wp_get_attachment_url($attachment_id)
+                        "imageid"=>wp_get_attachment_url($attachment_id),
+                        "wu"=>get_category_link($cats)
 			);
 			$catcount++;
 	  }
@@ -67,7 +68,7 @@ function nikhilurlhandler() {
 	
 	foreach($nikhilcats as $cat){
 		//for Newspoint
-   if($_SERVER["REQUEST_URI"] == '/feeds/json/newspoint/'.$cat->slug) {
+   if(preg_match("/newspoint/",$_SERVER["REQUEST_URI"])&&preg_match("/$cat->slug/",$_SERVER["REQUEST_URI"])&&preg_match("/json/",$_SERVER["REQUEST_URI"])) {
 	  header("Content-type: application/json; charset=utf-8");
 	  $posts=get_posts(array('numberposts'=>-1,'category'=>$cat->term_id,'orderby' => 'date','order' => 'DESC'));
 	  //page details
@@ -100,11 +101,11 @@ function nikhilurlhandler() {
 			$attachment_id='';
 			foreach ($image as $imageid=>$imageobject){$attachment_id=$imageobject->ID;}
 			$items[$postcount]=array(
-			"id" => $post->ID,
+			"id" => wp_get_attachment_url($attachment_id),
 			"h1" => $post->post_title,
 			"dm" => "tbsplanet.com",
 			"cap"=>wp_get_attachment_caption($attachment_id),
-			"wu"=>wp_get_attachment_url($attachment_id),
+			"wu"=>get_permalink($post),
 			"m"=>wp_get_attachment_url($attachment_id),
 			"ag"=>"TBS Planet Comics",
 			"dl"=>$post->post_date
@@ -158,7 +159,7 @@ xmlwriter_text($xw,$post->ID);
 xmlwriter_end_Attribute($xw);
 
 xmlwriter_start_Attribute($xw,'contentType');
-xmlwriter_text($xw,wp_get_post_tags($post->ID));
+xmlwriter_text($xw,'Image');
 xmlwriter_end_Attribute($xw);
 
 xmlwriter_start_Attribute($xw,'agency');
@@ -167,6 +168,10 @@ xmlwriter_end_Attribute($xw);
 
 xmlwriter_start_Attribute($xw,'imageURL');
 xmlwriter_text($xw,wp_get_attachment_url($attachment_id));
+xmlwriter_end_Attribute($xw);
+
+xmlwriter_start_Attribute($xw,'wu');
+xmlwriter_text($xw,get_permalink($post));
 xmlwriter_end_Attribute($xw);
 
 xmlwriter_start_Attribute($xw,'timestamp');
